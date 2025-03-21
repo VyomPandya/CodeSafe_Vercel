@@ -19,31 +19,39 @@ interface HistoryEntry {
 }
 
 // TestMode component for development and debugging
+// This component provides buttons for testing different code types (JavaScript, Python, Java)
 function TestMode({ onTest }: { onTest: (type: string) => void }) {
   return (
+    // Container with margin and styling for visual distinction
     <div className="mt-4 p-3 border border-orange-300 bg-orange-50 rounded-md">
+      {/* Header with a bug icon and title "Test Mode" */}
       <h3 className="text-sm font-medium text-orange-800 flex items-center">
-        <Bug className="h-4 w-4 mr-1" />
+        <Bug className="h-4 w-4 mr-1" /> {/* Icon representing "Bug" for debugging context */}
         Test Mode
       </h3>
+      {/* Description paragraph explaining the purpose of the buttons */}
       <p className="text-xs text-orange-700 mb-2">
         Use these buttons to quickly test different code types:
       </p>
+      {/* Container for the buttons with spacing between them */}
       <div className="flex space-x-2">
+        {/* Button to test JavaScript code */}
         <button
-          onClick={() => onTest('js')}
+          onClick={() => onTest('js')} // Calls the onTest function with 'js' argument when clicked
           className="px-2 py-1 text-xs bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
         >
           Test JavaScript
         </button>
+        {/* Button to test Python code */}
         <button
-          onClick={() => onTest('py')}
+          onClick={() => onTest('py')} // Calls the onTest function with 'py' argument when clicked
           className="px-2 py-1 text-xs bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
         >
           Test Python
         </button>
+        {/* Button to test Java code */}
         <button
-          onClick={() => onTest('java')}
+          onClick={() => onTest('java')} // Calls the onTest function with 'java' argument when clicked
           className="px-2 py-1 text-xs bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
         >
           Test Java

@@ -8,8 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "predeploy": "npm run build && powershell -Command \"Copy-Item 'public/404.html' 'dist/' -Force; Copy-Item 'public/.nojekyll' 'dist/' -Force; Copy-Item 'public/_redirects' 'dist/' -Force; Copy-Item 'public/auth-redirect.html' 'dist/' -Force\"",
+    "deploy": "gh-pages -d dist",
+    "deploy-root": "powershell -Command \"Copy-Item 'public/root-index.html' $env:USERPROFILE\\index.html -Force; Write-Host 'Manual step: Please upload index.html from your home directory to your root GitHub Pages repo'\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",

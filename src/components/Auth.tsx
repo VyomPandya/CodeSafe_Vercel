@@ -22,6 +22,9 @@ export function Auth() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: 'https://vyompandya.github.io/CodeSafe'
+          }
         });
         
         if (error) throw error;
@@ -29,7 +32,7 @@ export function Auth() {
         if (data?.user?.identities?.length === 0) {
           setMessage('This email is already registered. Please sign in instead.');
         } else {
-          setMessage('Registration successful! Please check your email for verification link.');
+          setMessage('Registration successful! Check your email for the confirmation link.');
         }
         
         console.log('Sign up response:', data);
@@ -58,12 +61,16 @@ export function Auth() {
       setMessage(null);
       
       console.log('Signing in with GitHub');
-      const { error } = await supabase.auth.signInWithOAuth({
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: 'https://vyompandya.github.io/CodeSafe',
+          scopes: 'read:user user:email'
         }
       });
+      
+      console.log('OAuth response:', data);
       
       if (error) throw error;
     } catch (error) {
