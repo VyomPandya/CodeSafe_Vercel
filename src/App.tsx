@@ -6,7 +6,7 @@ import { HistoryView } from './components/HistoryView';
 import { SeverityFilter } from './components/SeverityFilter';
 import { CodeEnhancement } from './components/CodeEnhancement';
 import { analyzeCode } from './lib/analyzer';
-import { supabase, getSupabaseClient } from './lib/supabase';
+import { getSupabaseClient } from './lib/supabase';
 import { LogOut, AlertTriangle, History, Upload, Bug, Cpu } from 'lucide-react';
 import { Session } from '@supabase/supabase-js';
 import { generateTestFile } from './lib/testData';
@@ -145,30 +145,31 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!supabase) {
-      console.error("Supabase client not available for onAuthStateChange");
-      return;
-    }
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed', event, session);
-      setSession(session);
-    });
+    try {
+      const client = getSupabaseClient();
+      const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+        console.log('Auth state changed', event, session);
+        setSession(session);
+      });
 
-    return () => {
-      if (subscription) subscription.unsubscribe();
-    };
+      return () => {
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+      };
+    } catch (error) {
+      console.error("Failed to subscribe to auth state changes:", error);
+      setError("Authentication service is unavailable.");
+      setLoading(false);
+      return () => {};
+    }
   }, []);
 
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        if (!supabase) {
-          console.error("Supabase client not available for getSession");
-          setLoading(false);
-          setError("Failed to initialize authentication client.");
-          return;
-        }
-        const { data } = await supabase.auth.getSession();
+        const client = getSupabaseClient();
+        const { data } = await client.auth.getSession();
         console.log('Initial session:', data.session);
         setSession(data.session);
       } catch (error) {
@@ -193,11 +194,6 @@ function App() {
     
     try {
       const client = getSupabaseClient();
-      if (!client) {
-        console.error("Supabase client not available for loadHistory");
-        setError("Failed to load analysis history: Client not available.");
-        return;
-      }
       const { data, error } = await client
         .from('analysis_history')
         .select('*')
@@ -208,7 +204,7 @@ function App() {
       setHistory(data || []);
     } catch (err) {
       console.error('Error loading history:', err);
-      setError("Failed to load analysis history. Please check your connection and try again.");
+      setError(err instanceof Error ? err.message : "Failed to load analysis history. Please check your connection and try again.");
     }
   };
 
@@ -248,11 +244,12 @@ function App() {
           await loadHistory();
         } catch (dbErr) {
           console.error("Failed to save analysis history:", dbErr);
-          // Continue with the analysis even if saving to history fails
+          showToast("Failed to save analysis to history.", "error");
         }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during analysis');
+      showToast(err instanceof Error ? err.message : 'An error occurred during analysis', 'error');
     } finally {
       setAnalyzing(false);
     }
@@ -261,15 +258,12 @@ function App() {
   const handleSignOut = async () => {
     try {
       const client = getSupabaseClient();
-      if (!client) {
-        console.error("Supabase client not available for signOut");
-        setError("Sign out failed: Client not available.");
-        return;
-      }
-      await client.auth.signOut();
+      const { error } = await client.auth.signOut();
+      if (error) throw error;
     } catch (error) {
       console.error("Sign out failed:", error);
-      setError("Sign out failed. Please try again.");
+      setError(error instanceof Error ? error.message : "Sign out failed. Please try again.");
+      showToast(error instanceof Error ? error.message : "Sign out failed. Please try again.", 'error');
     }
   };
 
