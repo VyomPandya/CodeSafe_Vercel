@@ -3,6 +3,15 @@ import { VulnerabilityResult } from '../components/AnalysisResult';
 // API key should be in environment variables
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
+// Log more detailed API key info in development mode only
+if (import.meta.env.DEV) {
+  if (OPENROUTER_API_KEY) {
+    console.log(`OpenRouter API key found (starts with: ${OPENROUTER_API_KEY.substring(0, 5)}...)`);
+  } else {
+    console.warn('OpenRouter API key not found in environment variables');
+  }
+}
+
 // Log a warning if API key is missing, but don't treat it as a hard error
 if (!OPENROUTER_API_KEY) {
   console.warn('OpenRouter API key not found, local analysis will be used as fallback');
@@ -92,12 +101,24 @@ IMPORTANT:
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('OpenRouter API error details:', errorData);
+      console.error('OpenRouter API error status:', response.status, response.statusText);
+      
+      // Log full details in development only
+      if (import.meta.env.DEV) {
+        console.error('OpenRouter API request headers:', {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENROUTER_API_KEY ? OPENROUTER_API_KEY.substring(0, 5) + '...' : 'undefined'}`,
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Code Vulnerability Analyzer'
+        });
+        console.error('OpenRouter API request URL:', 'https://openrouter.ai/api/v1/chat/completions');
+      }
       
       // Instead of throwing errors, log a warning and fall back to local analysis
       if (response.status === 429) {
         console.warn('Rate limit reached for free model. Falling back to local analysis.');
       } else if (response.status === 401) {
-        console.warn('OpenRouter API authentication failed. Falling back to local analysis.');
+        console.warn('OpenRouter API authentication failed. Check if your API key is valid and correctly configured. Falling back to local analysis.');
       } else {
         console.warn(`OpenRouter API error: ${errorData.error?.message || response.statusText}. Falling back to local analysis.`);
       }
