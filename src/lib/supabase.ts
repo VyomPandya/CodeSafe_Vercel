@@ -1,8 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Add debugging to see what values are actually being used
+console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL || 'NOT SET');
+console.log('Supabase Key:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET (hidden)' : 'NOT SET');
+
 // Use environment variables with proper fallbacks
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+// Add validation
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Supabase credentials not properly configured!', {
+    url: supabaseUrl ? 'Set' : 'Not set',
+    key: supabaseAnonKey ? 'Set' : 'Not set'
+  });
+}
 
 // Add specific options to handle browser environments
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

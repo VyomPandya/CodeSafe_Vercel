@@ -36,6 +36,11 @@
         }
       }(window.location))
     </script>
+    <!-- Add this before any other scripts -->
+    <script>
+      window.global = window;
+      window.process = { env: {} };
+    </script>
   </head>
   <body>
     <div id="root"></div>

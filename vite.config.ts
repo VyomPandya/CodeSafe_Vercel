@@ -1,17 +1,22 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
+  // Load env file based on `mode` in the current directory.
+  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
+  const env = loadEnv(mode, process.cwd(), '')
+  
   const config = {
     plugins: [react()],
     base: '/', // Default base path
     define: {
       // This will help with process.env references
       'process.env': {},
-      // You can also define your environment variables here
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
-      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY)
+      'global': {},
+      // Explicitly define all environment variables
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL || ''),
+      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY || '')
     },
     
     // Ensure assets are properly handled
@@ -27,9 +32,9 @@ export default defineConfig(({ command }) => {
     }
   }
 
-  // Set base path only for production build, matching your repo name
+  // Set base path for production
   if (command === 'build') {
-    config.base = '/CodeSafe/' // <-- Replace 'CodeSafe' with your actual repository name
+    config.base = '/CodeSafe/'
   }
 
   return config
