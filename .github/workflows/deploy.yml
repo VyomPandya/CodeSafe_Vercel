@@ -23,6 +23,12 @@ jobs:
       - name: Install Dependencies 📦
         run: npm install # Or yarn install
 
+      - name: Debug Available Secrets
+        run: |
+          echo "Available secret names (values hidden):"
+          echo "VITE_OPENROUTER_API_KEY exists: ${{ secrets.VITE_OPENROUTER_API_KEY != '' }}"
+          echo "GITHUB_TOKEN exists: ${{ secrets.GITHUB_TOKEN != '' }}"
+
       - name: Check Environment Variable 🧐
         env:
           TEST_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
