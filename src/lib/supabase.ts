@@ -88,5 +88,10 @@ export function getSupabaseClient() {
   return supabaseClient;
 }
 
-// Export for backward compatibility, though direct usage should be avoided
-export const supabase = supabaseClient;
+// Instead, export a proxy object that always uses getSupabaseClient()
+export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+  get: (target, prop) => {
+    const client = getSupabaseClient();
+    return client[prop as keyof typeof client];
+  }
+});
