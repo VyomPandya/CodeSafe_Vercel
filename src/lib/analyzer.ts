@@ -3,6 +3,11 @@ import { VulnerabilityResult } from '../components/AnalysisResult';
 // API key should be in environment variables
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 
+// Log a warning if API key is missing, but don't treat it as a hard error
+if (!OPENROUTER_API_KEY) {
+  console.warn('OpenRouter API key not found, local analysis will be used as fallback');
+}
+
 /**
  * This function sends code to OpenRouter API for vulnerability analysis
  * @param file The uploaded code file
@@ -85,12 +90,14 @@ IMPORTANT:
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       console.error('OpenRouter API error details:', errorData);
       
-      // Check for rate limiting
+      // Check for specific error cases
       if (response.status === 429) {
         throw new Error('Rate limit reached for free model. Please try again later or consider using a different model.');
+      } else if (response.status === 401) {
+        throw new Error('OpenRouter API error: Authentication failed. Please check if your API key is correct and valid.');
       }
       
       throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
