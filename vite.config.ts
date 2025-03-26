@@ -6,6 +6,13 @@ export default defineConfig(({ command }) => {
   const config = {
     plugins: [react()],
     base: '/', // Default base path
+    define: {
+      // This will help with process.env references
+      'process.env': {},
+      // You can also define your environment variables here
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
+      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY)
+    },
     
     // Ensure assets are properly handled
     build: {
