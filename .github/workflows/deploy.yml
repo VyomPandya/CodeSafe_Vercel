@@ -28,7 +28,7 @@ jobs:
       - name: Check Environment Variable 🧐
         env:
           # Temporarily hardcode for testing
-          TEST_API_KEY: "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"
+          TEST_API_KEY: "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"
         run: |
           echo "Checking hardcoded API key..."
           if [ -z "$TEST_API_KEY" ]; then
