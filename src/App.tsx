@@ -10,7 +10,6 @@ import { supabase, getSupabaseClient } from './lib/supabase';
 import { LogOut, AlertTriangle, History, Upload, Bug, Cpu } from 'lucide-react';
 import { Session } from '@supabase/supabase-js';
 import { generateTestFile } from './lib/testData';
-import { useToast } from '@chakra-ui/react';
 
 interface HistoryEntry {
   id: string;
@@ -88,6 +87,31 @@ function ModelSelector({ selectedModel, onChange }: {
   );
 }
 
+// Simple Toast component
+function Toast({ message, type, onClose }: { 
+  message: string; 
+  type: 'success' | 'error' | 'warning' | 'info';
+  onClose: () => void;
+}) {
+  const bgColor = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    warning: 'bg-yellow-500',
+    info: 'bg-blue-500'
+  }[type];
+
+  return (
+    <div className={`fixed top-4 right-4 z-50 p-4 rounded shadow-lg ${bgColor} text-white max-w-sm`}>
+      <div className="flex justify-between items-center">
+        <p>{message}</p>
+        <button onClick={onClose} className="ml-4 text-white hover:text-gray-200">
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,8 +127,22 @@ function App() {
   const [selectedModel, setSelectedModel] = useState('mistralai/mistral-7b-instruct-v0.2:free');
   const [fileName, setFileName] = useState<string>('');
   const [isUploaded, setIsUploaded] = useState<boolean>(false);
-  const { colorMode, toggleColorMode } = useColorMode();
-  const toast = useToast();
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error' | 'warning' | 'info', visible: boolean} | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    setToast({ message, type, visible: true });
+    setTimeout(() => {
+      setToast(null);
+    }, 5000);
+  };
+
+  // Display a notification if the OpenRouter API key is missing
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (!apiKey) {
+      showToast('OpenRouter API key not configured. Local analysis will be used as fallback.', 'warning');
+    }
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase ? supabase.auth.onAuthStateChange((event, session) => {
@@ -248,21 +286,6 @@ function App() {
     await handleFileUpload(testFile);
   };
 
-  // Display a notification if the OpenRouter API key is missing
-  useEffect(() => {
-    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-    if (!apiKey) {
-      toast({
-        title: 'API Key Missing',
-        description: 'OpenRouter API key not configured. Local analysis will be used as fallback.',
-        status: 'warning',
-        duration: 5000,
-        isClosable: true,
-        position: 'top',
-      });
-    }
-  }, [toast]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -286,6 +309,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {toast && toast.visible && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
+      
       <nav className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
