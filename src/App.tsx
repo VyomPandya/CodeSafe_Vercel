@@ -145,10 +145,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase ? supabase.auth.onAuthStateChange((event, session) => {
+    if (!supabase) {
+      console.error("Supabase client not available for onAuthStateChange");
+      return;
+    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed', event, session);
       setSession(session);
-    }) : { data: { subscription: null } };
+    });
 
     return () => {
       if (subscription) subscription.unsubscribe();
@@ -158,8 +162,12 @@ function App() {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        if (!supabase) throw new Error("Supabase client not initialized");
-        
+        if (!supabase) {
+          console.error("Supabase client not available for getSession");
+          setLoading(false);
+          setError("Failed to initialize authentication client.");
+          return;
+        }
         const { data } = await supabase.auth.getSession();
         console.log('Initial session:', data.session);
         setSession(data.session);
@@ -185,6 +193,11 @@ function App() {
     
     try {
       const client = getSupabaseClient();
+      if (!client) {
+        console.error("Supabase client not available for loadHistory");
+        setError("Failed to load analysis history: Client not available.");
+        return;
+      }
       const { data, error } = await client
         .from('analysis_history')
         .select('*')
@@ -248,6 +261,11 @@ function App() {
   const handleSignOut = async () => {
     try {
       const client = getSupabaseClient();
+      if (!client) {
+        console.error("Supabase client not available for signOut");
+        setError("Sign out failed: Client not available.");
+        return;
+      }
       await client.auth.signOut();
     } catch (error) {
       console.error("Sign out failed:", error);
