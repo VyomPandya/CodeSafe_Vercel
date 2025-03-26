@@ -10,6 +10,7 @@ import { supabase, getSupabaseClient } from './lib/supabase';
 import { LogOut, AlertTriangle, History, Upload, Bug, Cpu } from 'lucide-react';
 import { Session } from '@supabase/supabase-js';
 import { generateTestFile } from './lib/testData';
+import { useToast } from '@chakra-ui/react';
 
 interface HistoryEntry {
   id: string;
@@ -100,6 +101,10 @@ function App() {
   const [selectedSeverities, setSelectedSeverities] = useState<string[]>([]);
   const [isDevMode, setIsDevMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState('mistralai/mistral-7b-instruct-v0.2:free');
+  const [fileName, setFileName] = useState<string>('');
+  const [isUploaded, setIsUploaded] = useState<boolean>(false);
+  const { colorMode, toggleColorMode } = useColorMode();
+  const toast = useToast();
 
   useEffect(() => {
     const { data: { subscription } } = supabase ? supabase.auth.onAuthStateChange((event, session) => {
@@ -242,6 +247,21 @@ function App() {
     const testFile = generateTestFile(fileType);
     await handleFileUpload(testFile);
   };
+
+  // Display a notification if the OpenRouter API key is missing
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (!apiKey) {
+      toast({
+        title: 'API Key Missing',
+        description: 'OpenRouter API key not configured. Local analysis will be used as fallback.',
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+        position: 'top',
+      });
+    }
+  }, [toast]);
 
   if (loading) {
     return (
