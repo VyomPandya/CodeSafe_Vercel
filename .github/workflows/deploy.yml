@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Allow write access to repository contents (needed to push to gh-pages)
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
