@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: github-pages  # or whatever your environment name is
     permissions:
       contents: write # Allow write access to repository contents (needed to push to gh-pages)
     steps:
@@ -26,22 +27,22 @@ jobs:
       # Add this step for debugging
       - name: Check Environment Variable 🧐
         env:
-          TEST_API_KEY: ${{ vars.VITE_OPENROUTER_API_KEY }}
+          # Temporarily hardcode for testing
+          TEST_API_KEY: "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"
         run: |
-          echo "Checking VITE_OPENROUTER_API_KEY..."
+          echo "Checking hardcoded API key..."
           if [ -z "$TEST_API_KEY" ]; then
-            echo "VITE_OPENROUTER_API_KEY is NOT set or is empty!"
-            exit 1 # Optionally fail the build if the key is missing
+            echo "TEST_API_KEY is NOT set or is empty!"
+            exit 1
           else
-            echo "VITE_OPENROUTER_API_KEY is set (value hidden)."
-            # You can also check the first few chars if needed, but be careful not to expose too much
-            # echo "First 4 chars: ${TEST_API_KEY:0:4}"
+            echo "TEST_API_KEY is set (value masked for security)."
           fi
 
       - name: Build 🏗️
         env:
-          VITE_OPENROUTER_API_KEY: ${{ vars.VITE_OPENROUTER_API_KEY }}
-        run: npm run build # Or yarn build
+          # Temporarily hardcode for testing
+          VITE_OPENROUTER_API_KEY: "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"
+        run: npm run build
 
       - name: Deploy 🚀
         uses: peaceiris/actions-gh-pages@v3
