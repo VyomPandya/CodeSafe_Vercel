@@ -70,9 +70,24 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
+      - name: Prepare for GitHub Pages 📝
+        run: |
+          # Create .nojekyll file (prevents GitHub from ignoring files that begin with an underscore)
+          touch dist/.nojekyll
+          # Copy 404.html if it exists
+          [ -f "public/404.html" ] && cp public/404.html dist/ || echo "404.html not found in public directory"
+          # Copy other necessary files
+          [ -f "public/_redirects" ] && cp public/_redirects dist/ || echo "_redirects not found in public directory"
+          [ -f "public/auth-redirect.html" ] && cp public/auth-redirect.html dist/ || echo "auth-redirect.html not found in public directory"
+          
+          # Add additional logging
+          ls -la dist/
+          echo "Contents of dist directory shown above"
+
       - name: Deploy 🚀
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist # Or your build output directory
-          # Add other options if needed 
+          # Ensure GitHub doesn't process the files with Jekyll
+          disable_nojekyll: false # Keep .nojekyll file 
