@@ -8,7 +8,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: github-pages  # or whatever your environment name is
     permissions:
       contents: write # Allow write access to repository contents (needed to push to gh-pages)
     steps:
@@ -24,24 +23,21 @@ jobs:
       - name: Install Dependencies 📦
         run: npm install # Or yarn install
 
-      # Add this step for debugging
       - name: Check Environment Variable 🧐
         env:
-          # Temporarily hardcode for testing
-          TEST_API_KEY: "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"
+          TEST_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
         run: |
-          echo "Checking hardcoded API key..."
+          echo "Checking API key existence..."
           if [ -z "$TEST_API_KEY" ]; then
-            echo "TEST_API_KEY is NOT set or is empty!"
+            echo "API key is NOT set or is empty!"
             exit 1
           else
-            echo "TEST_API_KEY is set (value masked for security)."
+            echo "API key is set (value is hidden)."
           fi
 
       - name: Build 🏗️
         env:
-          # Temporarily hardcode for testing
-          VITE_OPENROUTER_API_KEY: "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"
+          VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
         run: npm run build
 
       - name: Deploy 🚀
