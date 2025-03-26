@@ -9,9 +9,9 @@ export async function analyzeCode(code: string): Promise<string> {
 
   // 2. Check if the API key is available
   if (!apiKey) {
-    console.error("OpenRouter API Key is missing. Please check environment variables or build configuration.");
-    // This is likely the error path being hit in production
-    throw new Error("Configuration error: OpenRouter API Key not found.");
+    console.warn("OpenRouter API Key is missing. Please check environment variables or build configuration.");
+    // Use a more user-friendly error for missing configuration
+    throw new Error("OpenRouter integration is not properly configured. The application will use local analysis instead.");
   }
 
   const openRouterApiUrl = "https://openrouter.ai/api/v1/chat/completions";

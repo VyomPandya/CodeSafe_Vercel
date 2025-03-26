@@ -7,8 +7,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables. Check your .env file.');
 }
 
-// Always use the full GitHub Pages URL to ensure consistent redirects
-const siteUrl = 'https://vyompandya.github.io/CodeSafe';
+// Determine the site URL - use current origin in production or development
+// This will be github.io URL in production or localhost in development
+const siteUrl = typeof window !== 'undefined' ? window.location.origin + (window.location.pathname.endsWith('/') ? window.location.pathname.slice(0, -1) : window.location.pathname) : '';
+
+// For logging in development
+if (import.meta.env.DEV) {
+  console.log('Development mode - using site URL:', siteUrl);
+}
 
 // Check if we're handling an auth token in the URL
 const hasAuthParams = () => {

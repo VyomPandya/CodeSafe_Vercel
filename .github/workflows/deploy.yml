@@ -27,23 +27,47 @@ jobs:
         run: |
           echo "Available secret names (values hidden):"
           echo "VITE_OPENROUTER_API_KEY exists: ${{ secrets.VITE_OPENROUTER_API_KEY != '' }}"
+          echo "VITE_SUPABASE_URL exists: ${{ secrets.VITE_SUPABASE_URL != '' }}"
+          echo "VITE_SUPABASE_ANON_KEY exists: ${{ secrets.VITE_SUPABASE_ANON_KEY != '' }}"
           echo "GITHUB_TOKEN exists: ${{ secrets.GITHUB_TOKEN != '' }}"
 
-      - name: Check Environment Variable 🧐
+      - name: Check Environment Variables 🧐
         env:
-          TEST_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
+          TEST_OPENROUTER_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
+          TEST_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          TEST_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: |
-          echo "Checking API key existence..."
-          if [ -z "$TEST_API_KEY" ]; then
-            echo "API key is NOT set or is empty!"
+          echo "Checking environment variables..."
+          
+          # Check OpenRouter API Key
+          if [ -z "$TEST_OPENROUTER_KEY" ]; then
+            echo "WARNING: OpenRouter API key is NOT set or is empty!"
+            # Not failing the build since we have a local fallback
+          else
+            echo "OpenRouter API key is set (value is hidden)."
+          fi
+          
+          # Check Supabase URL (required)
+          if [ -z "$TEST_SUPABASE_URL" ]; then
+            echo "ERROR: Supabase URL is NOT set or is empty!"
             exit 1
           else
-            echo "API key is set (value is hidden)."
+            echo "Supabase URL is set (value is hidden)."
+          fi
+          
+          # Check Supabase Anon Key (required)
+          if [ -z "$TEST_SUPABASE_ANON_KEY" ]; then
+            echo "ERROR: Supabase Anon Key is NOT set or is empty!"
+            exit 1
+          else
+            echo "Supabase Anon Key is set (value is hidden)."
           fi
 
       - name: Build 🏗️
         env:
           VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Deploy 🚀
