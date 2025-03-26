@@ -7,13 +7,6 @@ export default defineConfig(({ command }) => {
     plugins: [react()],
     base: '/', // Default base path
     
-    // Add this to ensure environment variables are properly processed
-    define: {
-      'process.env.API_KEY': JSON.stringify(process.env.VITE_OPENROUTER_API_KEY),
-      'process.env.OPENROUTER_API_KEY': JSON.stringify(process.env.VITE_OPENROUTER_API_KEY),
-      'process.env.OPENAI_API_KEY': JSON.stringify(process.env.VITE_OPENROUTER_API_KEY)
-    },
-    
     // Ensure assets are properly handled
     build: {
       outDir: 'dist',

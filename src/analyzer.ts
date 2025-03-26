@@ -9,8 +9,8 @@ export async function analyzeCode(code: string): Promise<string> {
 
   // 2. Check if the API key is available
   if (!apiKey) {
-    console.error("OpenRouter API Key is missing. Please set VITE_OPENROUTER_API_KEY environment variable.");
-    // Throw a more specific error if the key is missing
+    console.error("OpenRouter API Key is missing. Please check environment variables or build configuration.");
+    // This is likely the error path being hit in production
     throw new Error("Configuration error: OpenRouter API Key not found.");
   }
 

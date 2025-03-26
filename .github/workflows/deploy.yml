@@ -23,6 +23,21 @@ jobs:
       - name: Install Dependencies 📦
         run: npm install # Or yarn install
 
+      # Add this step for debugging
+      - name: Check Environment Variable 🧐
+        env:
+          TEST_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
+        run: |
+          echo "Checking VITE_OPENROUTER_API_KEY..."
+          if [ -z "$TEST_API_KEY" ]; then
+            echo "VITE_OPENROUTER_API_KEY is NOT set or is empty!"
+            exit 1 # Optionally fail the build if the key is missing
+          else
+            echo "VITE_OPENROUTER_API_KEY is set (value hidden)."
+            # You can also check the first few chars if needed, but be careful not to expose too much
+            # echo "First 4 chars: ${TEST_API_KEY:0:4}"
+          fi
+
       - name: Build 🏗️
         env:
           VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
