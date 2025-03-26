@@ -1,32 +1,29 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Add debugging to see what values are actually being used
-console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL || 'NOT SET');
-console.log('Supabase Key:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET (hidden)' : 'NOT SET');
+// Get Supabase environment variables 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Use environment variables with proper fallbacks
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-// Add validation
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase credentials not properly configured!', {
-    url: supabaseUrl ? 'Set' : 'Not set',
-    key: supabaseAnonKey ? 'Set' : 'Not set'
-  });
+// Only show error in development environment, not in production to avoid exposing information
+if (import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey)) {
+  console.error('Missing Supabase environment variables. Check your .env.local file and ensure you have:');
+  console.error('VITE_SUPABASE_URL=your-supabase-url');
+  console.error('VITE_SUPABASE_ANON_KEY=your-supabase-anon-key');
+} else if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables. Check your GitHub secrets and environment variables.');
 }
 
-// Add specific options to handle browser environments
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  }
-});
+// Determine the site URL - use current origin in production or development
+// This will be github.io URL in production or localhost in development
+const siteUrl = typeof window !== 'undefined' ? window.location.origin + (window.location.pathname.endsWith('/') ? window.location.pathname.slice(0, -1) : window.location.pathname) : '';
 
-// Determine if the URL has auth parameters
-export const hasAuthParams = () => {
+// For logging in development
+if (import.meta.env.DEV) {
+  console.log('Development mode - using site URL:', siteUrl);
+}
+
+// Check if we're handling an auth token in the URL
+const hasAuthParams = () => {
   if (typeof window === 'undefined') return false;
   
   // Check both hash and query parameters for auth tokens
@@ -37,47 +34,34 @@ export const hasAuthParams = () => {
          hash.includes('type=signup');
 };
 
-// Safe getter function with fallback for dev mode
-export function getSupabaseClient() {
-  if (!supabase) {
-    // Instead of throwing an error, we'll provide a mock client for dev mode
-    if (import.meta.env.DEV && window.location.href.includes('devMode=true')) {
-      console.warn('Using mock Supabase client in dev mode');
-      // Return a minimally viable mock to prevent errors
-      return {
-        auth: {
-          getSession: async () => ({ data: { session: null }, error: null }),
-          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-          signOut: async () => ({ error: null }),
-        },
-        from: () => ({
-          select: () => ({
-            eq: () => ({
-              order: () => ({
-                then: (callback: Function) => callback({ data: [], error: null }),
-              }),
-            }),
-          }),
-          insert: () => ({
-            then: (callback: Function) => callback({ error: null }),
-          }),
-        }),
-      } as any;
-    }
-    
-    // In production, throw a clear error
-    throw new Error(
-      'Supabase client not initialized. Please check your environment variables and ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set correctly.'
-    );
-  }
-  
-  return supabase;
+// Log debug info
+if (typeof window !== 'undefined') {
+  console.log('Current URL:', window.location.href);
+  console.log('Has auth params:', hasAuthParams());
 }
 
-// Instead, export a proxy object that always uses getSupabaseClient()
-export const supabaseProxy = new Proxy({} as ReturnType<typeof createClient>, {
-  get: (target, prop) => {
-    const client = getSupabaseClient();
-    return client[prop as keyof typeof client];
+// Create a Supabase client with best-effort handling of missing configurations
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce', // Use PKCE flow for better security with GitHub Pages
+        site: siteUrl,
+      }
+    })
+  : null;
+
+// If we're handling an auth callback, log it
+if (hasAuthParams()) {
+  console.log('Processing auth callback');
+}
+
+// Provide a helpful error function to handle cases where Supabase client is null
+export function getSupabaseClient() {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized. Check your environment variables.');
   }
-});
+  return supabase;
+}

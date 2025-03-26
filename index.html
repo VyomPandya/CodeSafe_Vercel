@@ -6,12 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="%PUBLIC_URL%/">
     <title>Code Vulnerability Analyzer</title>
-    <!-- Move polyfills to the very top of head -->
-    <script>
-      window.global = window;
-      window.process = { env: {} };
-      window.Buffer = window.Buffer || { isBuffer: () => false };
-    </script>
     <!-- GitHub Pages SPA redirect handling -->
     <script type="text/javascript">
       // Single Page Apps for GitHub Pages
