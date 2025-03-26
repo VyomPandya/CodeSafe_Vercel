@@ -7,8 +7,8 @@ interface CodeEnhancementProps {
 }
 
 export function CodeEnhancement({ fileName, originalCode }: CodeEnhancementProps) {
-  const [enhancedCode, setEnhancedCode] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [suggestedCode, setSuggestedCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Function to request AI-enhanced code
@@ -17,10 +17,14 @@ export function CodeEnhancement({ fileName, originalCode }: CodeEnhancementProps
       setLoading(true);
       setError(null);
       
-      // Check if we have an OpenRouter API key
-      const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-      if (!OPENROUTER_API_KEY) {
-        throw new Error('API key not found. Please check your environment variables.');
+      // Use environment variable API key instead of hardcoded value
+      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+      
+      // Don't proceed if API key is missing
+      if (!apiKey) {
+        setError("API key not configured. Cannot generate enhanced code.");
+        setLoading(false);
+        return;
       }
 
       // Prepare the prompt for code enhancement
@@ -46,7 +50,7 @@ Do not include any explanations outside the code block, just return the enhanced
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'HTTP-Referer': window.location.origin,
           'X-Title': 'Code Vulnerability Analyzer',
         },
@@ -75,7 +79,7 @@ Do not include any explanations outside the code block, just return the enhanced
         enhancedCodeResult = match[1].trim();
       }
       
-      setEnhancedCode(enhancedCodeResult);
+      setSuggestedCode(enhancedCodeResult);
     } catch (error) {
       console.error('Error enhancing code:', error);
       setError(error instanceof Error ? error.message : 'An error occurred');
@@ -116,12 +120,12 @@ Do not include any explanations outside the code block, just return the enhanced
         </div>
       )}
 
-      {enhancedCode && (
+      {suggestedCode && (
         <div className="mt-4">
           <h4 className="text-sm font-medium text-gray-900 mb-2">Enhanced Code:</h4>
           <div className="bg-gray-50 rounded-md p-4 overflow-auto">
             <pre className="text-sm text-gray-800 whitespace-pre-wrap">
-              {enhancedCode}
+              {suggestedCode}
             </pre>
           </div>
         </div>

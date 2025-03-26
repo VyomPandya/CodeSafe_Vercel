@@ -107,7 +107,7 @@ IMPORTANT:
       if (import.meta.env.DEV) {
         console.error('OpenRouter API request headers:', {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENROUTER_API_KEY ? OPENROUTER_API_KEY.substring(0, 5) + '...' : 'undefined'}`,
+          'Authorization': 'Bearer [REDACTED]', // Never log API key even partially
           'HTTP-Referer': window.location.origin,
           'X-Title': 'Code Vulnerability Analyzer'
         });
