@@ -11,12 +11,25 @@ export default defineConfig(({ command, mode }) => {
     plugins: [react()],
     base: '/', // Default base path
     define: {
-      // This will help with process.env references
+      // Add more comprehensive globals
       'process.env': {},
-      'global': {},
+      'global': 'globalThis',
+      'process.env.NODE_ENV': JSON.stringify(mode),
       // Explicitly define all environment variables
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL || ''),
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY || '')
+    },
+    
+    // Add resolve aliases for browser compatibility
+    resolve: {
+      alias: {
+        './runtimeConfig': './runtimeConfig.browser',
+      }
+    },
+    
+    // Optimize dependencies
+    optimizeDeps: {
+      include: ['@chakra-ui/react', '@emotion/react', '@emotion/styled', 'framer-motion']
     },
     
     // Ensure assets are properly handled
@@ -28,7 +41,8 @@ export default defineConfig(({ command, mode }) => {
         input: {
           main: 'index.html',
         }
-      }
+      },
+      sourcemap: true
     }
   }
 
