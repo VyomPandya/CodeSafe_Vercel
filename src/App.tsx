@@ -426,8 +426,8 @@ function App() {
 
               {analyzing && (
                 <div className="mt-4 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-                  <span className="ml-2 text-gray-600">Analyzing code with {!import.meta.env.VITE_OPENROUTER_API_KEY ? 'local analyzer' : 'AI model'}...</span>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-500"></div>
+                  <span className="ml-2 text-gray-600">Analyzing code...</span>
                 </div>
               )}
 
