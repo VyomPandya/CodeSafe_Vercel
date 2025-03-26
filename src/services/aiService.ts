@@ -10,7 +10,13 @@ export const getApiKey = (): string => {
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
   
   if (!apiKey) {
-    throw new Error('API key not found. Please check your environment variables.');
+    // It's better to show a user-friendly message or disable the feature
+    // instead of throwing an error that might crash the app.
+    // Consider handling this case gracefully in the UI.
+    console.warn('API key not found. Please check your environment variables.');
+    // Return an empty string or handle appropriately elsewhere
+    return ''; 
+    // Or: throw new Error('API key not found. Please check your environment variables.');
   }
   
   return apiKey;
@@ -38,6 +44,13 @@ export const enhanceCode = async (code: string, options = {}) => {
   try {
     const config = initializeAiClient();
     
+    // Ensure the key is available before making the call
+    if (!config.apiKey) {
+      console.error('OpenRouter API key is missing. Cannot enhance code.');
+      // Optionally, inform the user via UI
+      throw new Error('API key is not configured.');
+    }
+
     // Implementation using OpenRouter API
     // Replace with your actual implementation
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
