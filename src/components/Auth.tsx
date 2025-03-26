@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, getSupabaseClient } from '../lib/supabase';
 import { GithubIcon, UserPlus, LogIn } from 'lucide-react';
 
 export function Auth() {
@@ -17,13 +17,16 @@ export function Auth() {
       setError(null);
       setMessage(null);
       
+      // Get Supabase client, which will throw an error if not initialized
+      const client = getSupabaseClient();
+      
       if (isSignUp) {
         console.log('Signing up with email:', email);
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await client.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: 'https://vyompandya.github.io/CodeSafe'
+            emailRedirectTo: window.location.origin + window.location.pathname
           }
         });
         
@@ -38,7 +41,7 @@ export function Auth() {
         console.log('Sign up response:', data);
       } else {
         console.log('Signing in with email:', email);
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await client.auth.signInWithPassword({
           email,
           password,
         });
@@ -62,10 +65,16 @@ export function Auth() {
       
       console.log('Signing in with GitHub');
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      // Get Supabase client, which will throw an error if not initialized
+      const client = getSupabaseClient();
+      
+      const redirectUrl = window.location.origin + window.location.pathname;
+      console.log('Using redirect URL:', redirectUrl);
+      
+      const { data, error } = await client.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: 'https://vyompandya.github.io/CodeSafe',
+          redirectTo: redirectUrl,
           scopes: 'read:user user:email'
         }
       });

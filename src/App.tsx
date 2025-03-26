@@ -6,7 +6,7 @@ import { HistoryView } from './components/HistoryView';
 import { SeverityFilter } from './components/SeverityFilter';
 import { CodeEnhancement } from './components/CodeEnhancement';
 import { analyzeCode } from './lib/analyzer';
-import { supabase } from './lib/supabase';
+import { supabase, getSupabaseClient } from './lib/supabase';
 import { LogOut, AlertTriangle, History, Upload, Bug, Cpu } from 'lucide-react';
 import { Session } from '@supabase/supabase-js';
 import { generateTestFile } from './lib/testData';
@@ -102,36 +102,33 @@ function App() {
   const [selectedModel, setSelectedModel] = useState('mistralai/mistral-7b-instruct-v0.2:free');
 
   useEffect(() => {
-    async function setupAuth() {
+    const { data: { subscription } } = supabase ? supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed', event, session);
+      setSession(session);
+    }) : { data: { subscription: null } };
+
+    return () => {
+      if (subscription) subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const getInitialSession = async () => {
       try {
-        // Check active session
-        const { data, error } = await supabase.auth.getSession();
+        if (!supabase) throw new Error("Supabase client not initialized");
         
-        if (error) {
-          console.error('Error getting session:', error);
-          setError('Authentication error: ' + error.message);
-        } else {
-          console.log('Initial session:', data.session);
-          setSession(data.session);
-        }
-      } catch (err) {
-        console.error('Session retrieval error:', err);
+        const { data } = await supabase.auth.getSession();
+        console.log('Initial session:', data.session);
+        setSession(data.session);
+      } catch (error) {
+        console.error("Failed to get initial session:", error);
+        setError(error instanceof Error ? error.message : "Failed to initialize authentication");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    setupAuth();
-
-    // Set up auth state listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed", _event, session);
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
+    getInitialSession();
   }, []);
 
   useEffect(() => {
@@ -141,16 +138,21 @@ function App() {
   }, [session]);
 
   const loadHistory = async () => {
+    if (!session?.user) return;
+    
     try {
-      const { data, error } = await supabase
+      const client = getSupabaseClient();
+      const { data, error } = await client
         .from('analysis_history')
         .select('*')
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
-
+      
       if (error) throw error;
       setHistory(data || []);
     } catch (err) {
       console.error('Error loading history:', err);
+      setError("Failed to load analysis history. Please check your connection and try again.");
     }
   };
 
@@ -173,19 +175,25 @@ function App() {
       setResults(analysisResults);
 
       if (session?.user) {
-        const { error: dbError } = await supabase
-          .from('analysis_history')
-          .insert([
-            {
-              user_id: session.user.id,
-              file_name: file.name,
-              results: analysisResults,
-              created_at: new Date().toISOString(),
-            },
-          ]);
+        try {
+          const client = getSupabaseClient();
+          const { error: dbError } = await client
+            .from('analysis_history')
+            .insert([
+              {
+                user_id: session.user.id,
+                file_name: file.name,
+                results: analysisResults,
+                created_at: new Date().toISOString(),
+              },
+            ]);
 
-        if (dbError) throw dbError;
-        await loadHistory();
+          if (dbError) throw dbError;
+          await loadHistory();
+        } catch (dbErr) {
+          console.error("Failed to save analysis history:", dbErr);
+          // Continue with the analysis even if saving to history fails
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during analysis');
@@ -195,7 +203,13 @@ function App() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const client = getSupabaseClient();
+      await client.auth.signOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+      setError("Sign out failed. Please try again.");
+    }
   };
 
   const handleSeverityChange = (severity: string) => {
