@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase, getSupabaseClient } from '../lib/supabase';
+import { getSupabaseClient } from '../lib/supabase';
 import { GithubIcon, UserPlus, LogIn } from 'lucide-react';
 
 export function Auth() {
@@ -68,7 +68,7 @@ export function Auth() {
       // Get Supabase client, which will throw an error if not initialized
       const client = getSupabaseClient();
       
-      const redirectUrl = window.location.origin + window.location.pathname;
+      const redirectUrl = window.location.origin + (window.location.pathname.includes('/CodeSafe') ? '/CodeSafe/' : '/');
       console.log('Using redirect URL:', redirectUrl);
       
       const { data, error } = await client.auth.signInWithOAuth({
