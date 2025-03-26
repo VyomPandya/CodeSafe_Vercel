@@ -15,18 +15,18 @@ if (!OPENROUTER_API_KEY) {
  * @returns Promise with vulnerability analysis results
  */
 export async function analyzeCode(file: File, model = 'mistralai/mistral-7b-instruct-v0.2:free'): Promise<VulnerabilityResult[]> {
+  const content = await file.text();
+  const fileExtension = file.name.split('.').pop()?.toLowerCase();
+  
+  // Local fallback analysis if OpenRouter API key is not set
+  if (!OPENROUTER_API_KEY) {
+    console.warn('OpenRouter API key not found, using local analysis');
+    return performLocalAnalysis(content, fileExtension || '', file.name);
+  }
+  
+  console.log(`Analyzing code using model: ${model}`);
+  
   try {
-    const content = await file.text();
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    
-    // Local fallback analysis if OpenRouter API key is not set
-    if (!OPENROUTER_API_KEY) {
-      console.warn('OpenRouter API key not found, using local analysis');
-      return performLocalAnalysis(content, fileExtension || '', file.name);
-    }
-    
-    console.log(`Analyzing code using model: ${model}`);
-    
     // Prepare the optimized prompt for the code analysis model
     const prompt = `
 You are a code security expert analyzing code for vulnerabilities.
@@ -93,21 +93,23 @@ IMPORTANT:
       const errorData = await response.json().catch(() => ({}));
       console.error('OpenRouter API error details:', errorData);
       
-      // Check for specific error cases
+      // Instead of throwing errors, log a warning and fall back to local analysis
       if (response.status === 429) {
-        throw new Error('Rate limit reached for free model. Please try again later or consider using a different model.');
+        console.warn('Rate limit reached for free model. Falling back to local analysis.');
       } else if (response.status === 401) {
-        throw new Error('OpenRouter API error: Authentication failed. Please check if your API key is correct and valid.');
+        console.warn('OpenRouter API authentication failed. Falling back to local analysis.');
+      } else {
+        console.warn(`OpenRouter API error: ${errorData.error?.message || response.statusText}. Falling back to local analysis.`);
       }
       
-      throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+      // Use local analysis as fallback
+      return performLocalAnalysis(content, fileExtension || '', file.name);
     }
 
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
     
     // Parse JSON from response
-    // We need to extract the JSON part from the response, as the model might include extra text
     try {
       let analysisResults: VulnerabilityResult[] = [];
       
@@ -155,14 +157,14 @@ IMPORTANT:
     } catch (parseError: unknown) {
       console.error('Error parsing AI response:', parseError);
       console.log('Raw AI response:', aiResponse);
-      throw new Error('Could not parse analysis results from AI response: ' + 
-        (parseError instanceof Error ? parseError.message : String(parseError)));
+      console.warn('Could not parse analysis results from AI response. Falling back to local analysis.');
+      
+      // Use local analysis as fallback for parse errors too
+      return performLocalAnalysis(content, fileExtension || '', file.name);
     }
   } catch (error) {
     console.error('Error analyzing code with AI:', error);
-    // Fall back to local analysis on error
-    const content = await file.text();
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    // Fall back to local analysis on any error
     return performLocalAnalysis(content, fileExtension || '', file.name);
   }
 }
