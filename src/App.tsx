@@ -1,22 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Auth } from './components/Auth';
 import { FileUpload } from './components/FileUpload';
-import { AnalysisResult, VulnerabilityResult } from './components/AnalysisResult';
+import { AnalysisResult } from './components/AnalysisResult';
 import { HistoryView } from './components/HistoryView';
 import { SeverityFilter } from './components/SeverityFilter';
 import { CodeEnhancement } from './components/CodeEnhancement';
-import { analyzeCode } from './lib/analyzer';
-import { getSupabaseClient } from './lib/supabase';
-import { LogOut, AlertTriangle, History, Upload, Bug, Cpu } from 'lucide-react';
-import { Session } from '@supabase/supabase-js';
 import { generateTestFile } from './lib/testData';
-
-interface HistoryEntry {
-  id: string;
-  file_name: string;
-  results: VulnerabilityResult[];
-  created_at: string;
-}
+import { useAnalysis, AnalysisProvider } from './context/AnalysisContext';
+import { LogOut, AlertTriangle, History, Upload, Bug, Cpu } from 'lucide-react';
 
 // TestMode component for development and debugging
 // This component provides buttons for testing different code types (JavaScript, Python, Java)
@@ -112,22 +103,18 @@ function Toast({ message, type, onClose }: {
   );
 }
 
-function App() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [currentFile, setCurrentFile] = useState<string | null>(null);
-  const [currentCode, setCurrentCode] = useState<string | null>(null);
-  const [results, setResults] = useState<VulnerabilityResult[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [selectedSeverities, setSelectedSeverities] = useState<string[]>([]);
-  const [isDevMode, setIsDevMode] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('mistralai/mistral-7b-instruct-v0.2:free');
-  const [fileName, setFileName] = useState<string>('');
-  const [isUploaded, setIsUploaded] = useState<boolean>(false);
-  const [toast, setToast] = useState<{message: string, type: 'success' | 'error' | 'warning' | 'info', visible: boolean} | null>(null);
+// Main application component that uses the AnalysisContext
+function AppContent() {
+  const { 
+    state, 
+    dispatch, 
+    handleFileUpload, 
+    handleSignOut, 
+    handleSeverityChange,
+    filteredResults 
+  } = useAnalysis();
+  
+  const [toast, setToast] = React.useState<{message: string, type: 'success' | 'error' | 'warning' | 'info', visible: boolean} | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
     setToast({ message, type, visible: true });
@@ -144,161 +131,37 @@ function App() {
     }
   }, []);
 
+  // When error state changes, show a toast
   useEffect(() => {
-    try {
-      const client = getSupabaseClient();
-      const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
-        console.log('Auth state changed', event, session);
-        setSession(session);
-      });
-
-      return () => {
-        if (subscription) {
-          subscription.unsubscribe();
-        }
-      };
-    } catch (error) {
-      console.error("Failed to subscribe to auth state changes:", error);
-      setError("Authentication service is unavailable.");
-      setLoading(false);
-      return () => {};
+    if (state.error) {
+      showToast(state.error, 'error');
     }
-  }, []);
+  }, [state.error]);
 
-  useEffect(() => {
-    const getInitialSession = async () => {
-      try {
-        const client = getSupabaseClient();
-        const { data } = await client.auth.getSession();
-        console.log('Initial session:', data.session);
-        setSession(data.session);
-      } catch (error) {
-        console.error("Failed to get initial session:", error);
-        setError(error instanceof Error ? error.message : "Failed to initialize authentication");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getInitialSession();
-  }, []);
-
-  useEffect(() => {
-    if (session?.user) {
-      loadHistory();
-    }
-  }, [session]);
-
-  const loadHistory = async () => {
-    if (!session?.user) return;
-    
-    try {
-      const client = getSupabaseClient();
-      const { data, error } = await client
-        .from('analysis_history')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setHistory(data || []);
-    } catch (err) {
-      console.error('Error loading history:', err);
-      setError(err instanceof Error ? err.message : "Failed to load analysis history. Please check your connection and try again.");
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
-    try {
-      setAnalyzing(true);
-      setError(null);
-      setCurrentFile(file.name);
-      
-      // Read the file content once
-      const content = await file.text();
-      setCurrentCode(content);
-      
-      // Create a new file object to pass to analyzer (not ideal but works)
-      const fileBlob = new Blob([content], { type: file.type });
-      const fileObject = new File([fileBlob], file.name, { type: file.type });
-      
-      // Pass the selected model to the analyzeCode function
-      const analysisResults = await analyzeCode(fileObject, selectedModel);
-      setResults(analysisResults);
-
-      if (session?.user) {
-        try {
-          const client = getSupabaseClient();
-          const { error: dbError } = await client
-            .from('analysis_history')
-            .insert([
-              {
-                user_id: session.user.id,
-                file_name: file.name,
-                results: analysisResults,
-                created_at: new Date().toISOString(),
-              },
-            ]);
-
-          if (dbError) throw dbError;
-          await loadHistory();
-        } catch (dbErr) {
-          console.error("Failed to save analysis history:", dbErr);
-          showToast("Failed to save analysis to history.", "error");
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during analysis');
-      showToast(err instanceof Error ? err.message : 'An error occurred during analysis', 'error');
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      const client = getSupabaseClient();
-      const { error } = await client.auth.signOut();
-      if (error) throw error;
-    } catch (error) {
-      console.error("Sign out failed:", error);
-      setError(error instanceof Error ? error.message : "Sign out failed. Please try again.");
-      showToast(error instanceof Error ? error.message : "Sign out failed. Please try again.", 'error');
-    }
-  };
-
-  const handleSeverityChange = (severity: string) => {
-    setSelectedSeverities(prev =>
-      prev.includes(severity)
-        ? prev.filter(s => s !== severity)
-        : [...prev, severity]
-    );
-  };
-
-  const filteredResults = selectedSeverities.length > 0
-    ? results.filter(result => selectedSeverities.includes(result.severity))
-    : results;
-
-  // Skip auth in dev mode using shortcut keys
+  // Handle dev mode keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ctrl+Alt+D to toggle dev mode
       if (e.ctrlKey && e.altKey && e.key === 'd') {
-        setIsDevMode(prev => !prev);
-        console.log('Dev mode toggled:', !isDevMode);
+        dispatch({ type: 'SET_DEV_MODE', payload: !state.isDevMode });
+        console.log('Dev mode toggled:', !state.isDevMode);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDevMode]);
+  }, [state.isDevMode, dispatch]);
 
   const handleTestFile = async (fileType: string) => {
     const testFile = generateTestFile(fileType);
     await handleFileUpload(testFile);
   };
 
-  if (loading) {
+  const handleSetModel = (model: string) => {
+    dispatch({ type: 'SET_SELECTED_MODEL', payload: model });
+  };
+
+  if (state.loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
@@ -306,7 +169,7 @@ function App() {
     );
   }
 
-  if (!session && !isDevMode) {
+  if (!state.session && !state.isDevMode) {
     return (
       <>
         <Auth />
@@ -334,7 +197,7 @@ function App() {
           <div className="flex justify-between h-16">
             <div className="flex-shrink-0 flex items-center">
               <h1 className="text-xl font-bold text-indigo-600">Code Analyzer</h1>
-              {isDevMode && (
+              {state.isDevMode && (
                 <span className="ml-2 px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
                   Dev Mode
                 </span>
@@ -342,10 +205,10 @@ function App() {
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => setShowHistory(!showHistory)}
+                onClick={() => dispatch({ type: 'SET_SHOW_HISTORY', payload: !state.showHistory })}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100"
               >
-                {showHistory ? (
+                {state.showHistory ? (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
                     Analyze Code
@@ -357,7 +220,7 @@ function App() {
                   </>
                 )}
               </button>
-              {!isDevMode && (
+              {!state.isDevMode && (
                 <button
                   onClick={handleSignOut}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"
@@ -366,9 +229,9 @@ function App() {
                   Sign Out
                 </button>
               )}
-              {isDevMode && (
+              {state.isDevMode && (
                 <button
-                  onClick={() => setIsDevMode(false)}
+                  onClick={() => dispatch({ type: 'SET_DEV_MODE', payload: false })}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-orange-700 bg-orange-100 hover:bg-orange-200"
                 >
                   Exit Dev Mode
@@ -381,13 +244,13 @@ function App() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {showHistory ? (
+          {state.showHistory ? (
             <HistoryView
-              history={history}
+              history={state.history}
               onSelectEntry={(entry) => {
-                setCurrentFile(entry.file_name);
-                setResults(entry.results);
-                setShowHistory(false);
+                dispatch({ type: 'SET_CURRENT_FILE', payload: entry.file_name });
+                dispatch({ type: 'SET_RESULTS', payload: entry.results });
+                dispatch({ type: 'SET_SHOW_HISTORY', payload: false });
               }}
             />
           ) : (
@@ -398,49 +261,52 @@ function App() {
               
               {/* Add the model selector component */}
               <ModelSelector 
-                selectedModel={selectedModel} 
-                onChange={setSelectedModel} 
+                selectedModel={state.selectedModel} 
+                onChange={handleSetModel} 
               />
               
               {/* Direct file upload component */}
               <div className="mt-4">
-                <FileUpload onFileUpload={handleFileUpload} />
+                <FileUpload 
+                  onFileUpload={handleFileUpload} 
+                  fileInputKey={state.fileInputKey} // Add key for resetting file input
+                />
               </div>
 
-              {isDevMode && (
+              {state.isDevMode && (
                 <TestMode onTest={handleTestFile} />
               )}
 
-              {error && (
+              {state.error && (
                 <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex items-center">
                   <AlertTriangle className="h-5 w-5 mr-2" />
-                  <span>{error}</span>
+                  <span>{state.error}</span>
                 </div>
               )}
 
-              {analyzing && (
+              {state.analyzing && (
                 <div className="mt-4 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-500"></div>
                   <span className="ml-2 text-gray-600">Analyzing code...</span>
                 </div>
               )}
 
-              {currentFile && results.length > 0 && (
+              {state.currentFile && state.results.length > 0 && (
                 <>
                   <div className="mt-6">
                     <SeverityFilter
-                      selectedSeverities={selectedSeverities}
+                      selectedSeverities={state.selectedSeverities}
                       onSeverityChange={handleSeverityChange}
                     />
                   </div>
-                  <AnalysisResult results={filteredResults} fileName={currentFile} />
-                  {currentCode && (
-                    <CodeEnhancement fileName={currentFile} originalCode={currentCode} />
+                  <AnalysisResult results={filteredResults} fileName={state.currentFile} />
+                  {state.currentCode && (
+                    <CodeEnhancement fileName={state.currentFile} originalCode={state.currentCode} />
                   )}
                 </>
               )}
               
-              {currentFile && results.length === 0 && !analyzing && !error && (
+              {state.currentFile && state.results.length === 0 && !state.analyzing && !state.error && (
                 <>
                   <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-md">
                     <p className="text-green-800 flex items-center">
@@ -450,8 +316,8 @@ function App() {
                       No vulnerabilities found in the code! The analysis shows your code is secure.
                     </p>
                   </div>
-                  {currentCode && (
-                    <CodeEnhancement fileName={currentFile} originalCode={currentCode} />
+                  {state.currentCode && (
+                    <CodeEnhancement fileName={state.currentFile} originalCode={state.currentCode} />
                   )}
                 </>
               )}
@@ -460,6 +326,15 @@ function App() {
         </div>
       </main>
     </div>
+  );
+}
+
+// Wrapper component that provides the AnalysisContext
+function App() {
+  return (
+    <AnalysisProvider>
+      <AppContent />
+    </AnalysisProvider>
   );
 }
 

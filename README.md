@@ -12,6 +12,7 @@ A modern web application for analyzing code vulnerabilities in JavaScript, TypeS
 - **Severity Classification**: Issues are categorized as low, medium, or high severity
 - **AI-Based Suggestions**: Receives specific, actionable suggestions for improving code security
 - **History Tracking**: View past analyses with filtering by severity
+- **Improved State Management**: Context-based state with proper cleanup when users change or files are uploaded
 
 ## Technologies Used
 

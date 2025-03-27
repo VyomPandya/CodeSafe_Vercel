@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cpu, XCircle } from 'lucide-react';
 
 interface CodeEnhancementProps {
@@ -10,6 +10,12 @@ export function CodeEnhancement({ fileName, originalCode }: CodeEnhancementProps
   const [suggestedCode, setSuggestedCode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Clear previous results when originalCode or fileName changes
+  useEffect(() => {
+    setSuggestedCode(null);
+    setError(null);
+  }, [fileName, originalCode]);
 
   // Function to request AI-enhanced code
   const enhanceCode = async () => {
