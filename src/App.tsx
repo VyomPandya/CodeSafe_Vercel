@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Auth } from './components/Auth';
 import { FileUpload } from './components/FileUpload';
 import { AnalysisResult } from './components/AnalysisResult';
@@ -8,6 +8,7 @@ import { CodeEnhancement } from './components/CodeEnhancement';
 import { generateTestFile } from './lib/testData';
 import { useAnalysis, AnalysisProvider } from './context/AnalysisContext';
 import { LogOut, AlertTriangle, History, Upload, Bug, Cpu } from 'lucide-react';
+import { LandingPage } from './components/LandingPage';
 
 // TestMode component for development and debugging
 // This component provides buttons for testing different code types (JavaScript, Python, Java)
@@ -103,6 +104,61 @@ function Toast({ message, type, onClose }: {
   );
 }
 
+// About Us component
+function AboutUs() {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  
+  return (
+    <div className="bg-indigo-50 rounded-lg shadow px-5 py-6 mb-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-indigo-800">About CodeSafe Analyzer</h2>
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-indigo-600 hover:text-indigo-800"
+        >
+          {isExpanded ? 'Show Less' : 'Learn More'}
+        </button>
+      </div>
+      
+      <p className="mt-2 text-gray-700">
+        CodeSafe is an AI-powered code vulnerability analyzer that helps developers identify and fix security issues in their code.
+      </p>
+      
+      {isExpanded && (
+        <div className="mt-4 space-y-4">
+          <div>
+            <h3 className="text-lg font-medium text-indigo-700">Our Mission</h3>
+            <p className="mt-1 text-gray-700">
+              We aim to make code security accessible to all developers by providing an intuitive platform that analyzes code for vulnerabilities and suggests fixes.
+            </p>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-medium text-indigo-700">How It Works</h3>
+            <p className="mt-1 text-gray-700">
+              Upload your code files, and our AI-powered engine will analyze them for common security vulnerabilities, including SQL injections, XSS attacks, insecure dependencies, and more. 
+              We provide detailed reports with severity ratings and specific recommendations to fix each issue.
+            </p>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-medium text-indigo-700">Supported Languages</h3>
+            <p className="mt-1 text-gray-700">
+              Currently, we support JavaScript, Python, and Java. We're continuously expanding our capabilities to include more programming languages.
+            </p>
+          </div>
+          
+          <div className="pt-2 border-t border-indigo-200">
+            <p className="text-sm text-gray-600">
+              CodeSafe uses advanced AI models to provide accurate vulnerability detection. All analyses are performed securely, and your code is never stored permanently without your consent.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Main application component that uses the AnalysisContext
 function AppContent() {
   const { 
@@ -113,6 +169,9 @@ function AppContent() {
     handleSeverityChange,
     filteredResults 
   } = useAnalysis();
+  
+  const [showLandingPage, setShowLandingPage] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
   
   const [toast, setToast] = React.useState<{message: string, type: 'success' | 'error' | 'warning' | 'info', visible: boolean} | null>(null);
 
@@ -161,15 +220,55 @@ function AppContent() {
     dispatch({ type: 'SET_SELECTED_MODEL', payload: model });
   };
 
+  const handleGetStarted = () => {
+    setShowLandingPage(false);
+    setShowAuth(true);
+  };
+
+  // When user successfully signs in
+  useEffect(() => {
+    if (state.session) {
+      setShowAuth(false);
+    }
+  }, [state.session]);
+  
+  // Track when user signs out
+  useEffect(() => {
+    // For debugging only
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Auth state changed:", { 
+        session: state.session ? "logged in" : "logged out", 
+        loading: state.loading, 
+        showAuth, 
+        showLandingPage 
+      });
+    }
+    
+    // Handle completed sign out: session is null and loading has finished
+    if (!state.session && !state.loading) {
+      setShowLandingPage(true);
+      setShowAuth(false);
+    }
+  }, [state.session, state.loading]);
+
   if (state.loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
+        <p className="text-indigo-600 text-lg">
+          {state.session ? "Loading..." : "Signing out..."}
+        </p>
       </div>
     );
   }
 
-  if (!state.session && !state.isDevMode) {
+  // Show landing page
+  if (showLandingPage) {
+    return <LandingPage onGetStarted={handleGetStarted} />;
+  }
+
+  // Show authentication after landing page
+  if (showAuth && !state.session && !state.isDevMode) {
     return (
       <>
         <Auth />
@@ -180,6 +279,11 @@ function AppContent() {
         )}
       </>
     );
+  }
+
+  // If not authenticated and not in dev mode and not showing landing or auth page
+  if (!state.session && !state.isDevMode) {
+    return <LandingPage onGetStarted={handleGetStarted} />;
   }
 
   return (
@@ -222,7 +326,17 @@ function AppContent() {
               </button>
               {!state.isDevMode && (
                 <button
-                  onClick={handleSignOut}
+                  onClick={async () => {
+                    try {
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log("Sign out initiated");
+                      }
+                      await handleSignOut();
+                      // Sign out will be handled by the useEffect
+                    } catch (error) {
+                      console.error("Error during sign out:", error);
+                    }
+                  }}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"
                 >
                   <LogOut className="h-4 w-4 mr-2" />

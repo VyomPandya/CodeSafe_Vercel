@@ -234,18 +234,27 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // Function to handle sign out
   const handleSignOut = async () => {
     try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
       const client = getSupabaseClient();
       const { error } = await client.auth.signOut();
       if (error) throw error;
       
-      // Reset all state when signing out
+      // First explicitly set session to null to ensure the session state change is detected
+      dispatch({ type: 'SET_SESSION', payload: null });
+      
+      // Then reset all other state
       dispatch({ type: 'RESET_ALL_STATE' });
+      
+      // Finally set loading to false
+      dispatch({ type: 'SET_LOADING', payload: false });
     } catch (error) {
       console.error("Sign out failed:", error);
       dispatch({ 
         type: 'SET_ERROR', 
         payload: error instanceof Error ? error.message : "Sign out failed. Please try again." 
       });
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { getSupabaseClient } from '../lib/supabase';
-import { GithubIcon, UserPlus, LogIn } from 'lucide-react';
+import { GithubIcon, UserPlus, LogIn, Shield } from 'lucide-react';
 
 export function Auth() {
   const [loading, setLoading] = useState(false);
@@ -91,25 +91,34 @@ export function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen relative bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-500 bg-opacity-20 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 right-0 w-80 h-80 bg-purple-500 bg-opacity-20 rounded-full translate-x-1/3 translate-y-1/3"></div>
+      <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-indigo-400 bg-opacity-10 rounded-full animate-pulse"></div>
+      
+      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8 relative z-10">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+            <Shield className="h-8 w-8 text-indigo-600" />
+          </div>
+          
+          <h2 className="text-center text-3xl font-extrabold text-gray-900">
             Code Vulnerability Analyzer
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            {isSignUp ? 'Create your account' : 'Sign in to analyze your code'}
+            {isSignUp ? 'Create your account to secure your code' : 'Sign in to analyze your code'}
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mt-6" role="alert">
             <span className="block sm:inline">{error}</span>
           </div>
         )}
 
         {message && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative" role="alert">
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative mt-6" role="alert">
             <span className="block sm:inline">{message}</span>
           </div>
         )}
@@ -144,11 +153,11 @@ export function Auth() {
             </div>
           </div>
 
-          <div className="flex flex-col space-y-3">
+          <div className="flex flex-col space-y-4">
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150"
             >
               {loading ? (
                 <span className="flex items-center">
@@ -171,18 +180,27 @@ export function Auth() {
               )}
             </button>
 
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={handleGithubSignIn}
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150"
             >
               <GithubIcon className="h-5 w-5 mr-2" />
               Sign in with GitHub
             </button>
           </div>
 
-          <div className="text-center">
+          <div className="text-center pt-2">
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
@@ -194,6 +212,11 @@ export function Auth() {
             </button>
           </div>
         </form>
+        
+        <div className="mt-4 text-center text-xs text-gray-500">
+          <p>By continuing, you agree to our Terms of Service and Privacy Policy</p>
+          <p className="mt-1">Your code is analyzed securely and never shared</p>
+        </div>
       </div>
     </div>
   );
