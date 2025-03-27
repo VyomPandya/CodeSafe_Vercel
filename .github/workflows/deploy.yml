@@ -4,6 +4,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Add these permissions settings
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -28,4 +32,5 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist # The folder the action should deploy
-          branch: gh-pages # The branch the action should deploy to 
+          branch: gh-pages # The branch the action should deploy to
+          # No need to specify token as GITHUB_TOKEN will be used automatically 
