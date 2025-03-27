@@ -1,8 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Get Supabase environment variables 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Try to get Supabase environment variables from different sources
+// First try Vite's environment variables
+let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// If not available, try window._env_ (GitHub Pages workaround similar to OpenRouter)
+if ((!supabaseUrl || !supabaseAnonKey) && typeof window !== 'undefined' && window._env_) {
+  if (window._env_.SUPABASE_URL) {
+    supabaseUrl = window._env_.SUPABASE_URL;
+  }
+  if (window._env_.SUPABASE_ANON_KEY) {
+    supabaseAnonKey = window._env_.SUPABASE_ANON_KEY;
+  }
+}
 
 // Only show error in development environment, not in production to avoid exposing information
 if (import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey)) {
@@ -38,6 +49,9 @@ const hasAuthParams = () => {
 if (typeof window !== 'undefined') {
   console.log('Current URL:', window.location.href);
   console.log('Has auth params:', hasAuthParams());
+  if (window._env_) {
+    console.log('Found window._env_ variables');
+  }
 }
 
 // Create a Supabase client with best-effort handling of missing configurations

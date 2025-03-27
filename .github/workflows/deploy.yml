@@ -1,4 +1,5 @@
-name: Build and Deploy
+name: Deploy to GitHub Pages
+
 on:
   push:
     branches: [ main ]
@@ -6,31 +7,77 @@ on:
 
 # Add these permissions settings
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+          cache: 'npm'
+
       - name: Install dependencies
         run: npm ci
-        
-      - name: Build
+
+      - name: Generate environment variables file
+        run: |
+          # Ensure public directory exists
+          mkdir -p ./public
+          
+          # Create env-config.js file with proper JSON escaping
+          cat > ./public/env-config.js << EOF
+          // This file is auto-generated during deployment
+          window._env_ = window._env_ || {};
+          window._env_.SUPABASE_URL = "${SUPABASE_URL}";
+          window._env_.SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}";
+          window._env_.OPENROUTER_API_KEY = "${OPENROUTER_API_KEY}";
+          EOF
+          
+          # Log file creation (without exposing secrets)
+          echo "Created env-config.js in public directory"
         env:
-          VITE_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+      - name: Build
         run: npm run build
-        
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+      # Copy 404.html to handle GitHub Pages SPA routing
+      - name: Setup routing for SPA
+        run: cp dist/index.html dist/404.html
+
+      # Ensure env-config.js is in the dist folder for runtime access
+      - name: Ensure env-config.js is in dist folder
+        run: |
+          # Avoid potential issues with file not being copied during build
+          cp public/env-config.js dist/
+          echo "Copied env-config.js to dist folder"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          folder: dist # The folder the action should deploy
-          branch: gh-pages # The branch the action should deploy to
-          # No need to specify token as GITHUB_TOKEN will be used automatically 
+          path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2 
