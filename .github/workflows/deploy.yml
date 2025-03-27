@@ -75,9 +75,9 @@ jobs:
       - name: Build 🔨
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          VITE_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
           # Add GitHub Pages URL for proper base path configuration
           PUBLIC_URL: https://${{ env.REPO_OWNER }}.github.io/${{ env.REPO_NAME }}
           VITE_PUBLIC_PATH: /${{ env.REPO_NAME }}/
