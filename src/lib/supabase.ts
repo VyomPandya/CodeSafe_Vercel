@@ -47,8 +47,10 @@ export const supabase = supabaseUrl && supabaseAnonKey
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        flowType: 'pkce', // Use PKCE flow for better security with GitHub Pages
-        site: siteUrl,
+        flowType: 'pkce' // Use PKCE flow for better security with GitHub Pages
+      },
+      global: {
+        headers: { 'x-application-name': 'codesafe-analyzer' }
       }
     })
   : null;

@@ -182,6 +182,21 @@ function AppContent() {
     }, 5000);
   };
 
+  // Auto enable dev mode if Supabase is not initialized
+  useEffect(() => {
+    // If the app shows an authentication error and is not in dev mode, switch to dev mode automatically
+    if (
+      state.error && 
+      state.error.includes("Supabase client not initialized") && 
+      !state.isDevMode
+    ) {
+      console.log("Authentication service unavailable, enabling dev mode automatically");
+      dispatch({ type: 'SET_DEV_MODE', payload: true });
+      dispatch({ type: 'SET_ERROR', payload: null });
+      showToast('Running in demo mode as authentication is not available. No data will be saved.', 'info');
+    }
+  }, [state.error, state.isDevMode, dispatch]);
+
   // Display a notification if the OpenRouter API key is missing
   useEffect(() => {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;

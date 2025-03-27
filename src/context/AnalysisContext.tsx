@@ -271,7 +271,21 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // Handle auth state changes
   useEffect(() => {
     try {
-      const client = getSupabaseClient();
+      // Try to get Supabase client but catch error if it's not initialized
+      let client;
+      try {
+        client = getSupabaseClient();
+      } catch (error) {
+        console.warn("Authentication service unavailable:", error);
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return () => {};
+      }
+
+      // Only proceed if we have a client
+      if (!client) {
+        return () => {};
+      }
+
       const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
         console.log('Auth state changed', event, session);
         
@@ -303,7 +317,26 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const getInitialSession = async () => {
       try {
-        const client = getSupabaseClient();
+        // Try to get Supabase client but catch error if it's not initialized
+        let client;
+        try {
+          client = getSupabaseClient();
+        } catch (error) {
+          console.warn("Authentication service unavailable for initial session:", error);
+          dispatch({ 
+            type: 'SET_ERROR', 
+            payload: error instanceof Error ? error.message : "Authentication service is unavailable" 
+          });
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return;
+        }
+
+        // Only proceed if we have a client
+        if (!client) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+          return;
+        }
+
         const { data } = await client.auth.getSession();
         console.log('Initial session:', data.session);
         dispatch({ type: 'SET_SESSION', payload: data.session });

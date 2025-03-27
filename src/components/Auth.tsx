@@ -17,8 +17,13 @@ export function Auth() {
       setError(null);
       setMessage(null);
       
-      // Get Supabase client, which will throw an error if not initialized
-      const client = getSupabaseClient();
+      // Try to get Supabase client, which will throw an error if not initialized
+      let client;
+      try {
+        client = getSupabaseClient();
+      } catch (error) {
+        throw new Error("Authentication service is currently unavailable. Please try again later.");
+      }
       
       if (isSignUp) {
         console.log('Signing up with email:', email);
@@ -65,8 +70,13 @@ export function Auth() {
       
       console.log('Signing in with GitHub');
       
-      // Get Supabase client, which will throw an error if not initialized
-      const client = getSupabaseClient();
+      // Try to get Supabase client, which will throw an error if not initialized
+      let client;
+      try {
+        client = getSupabaseClient();
+      } catch (error) {
+        throw new Error("Authentication service is currently unavailable. Please try again later.");
+      }
       
       const redirectUrl = window.location.origin + (window.location.pathname.includes('/CodeSafe') ? '/CodeSafe/' : '/');
       console.log('Using redirect URL:', redirectUrl);
