@@ -1,93 +1,31 @@
-name: Deploy to GitHub Pages
-
+name: Build and Deploy
 on:
   push:
-    branches:
-      - main # Or your deployment branch
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Allow write access to repository contents (needed to push to gh-pages)
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Node.js ⚙️
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # Use your project's node version
-          cache: 'npm' # Or 'yarn'
-
-      - name: Install Dependencies 📦
-        run: npm install # Or yarn install
-
-      - name: Debug Available Secrets
-        run: |
-          echo "Available secret names (values hidden):"
-          echo "VITE_OPENROUTER_API_KEY exists: ${{ secrets.VITE_OPENROUTER_API_KEY != '' }}"
-          echo "VITE_SUPABASE_URL exists: ${{ secrets.VITE_SUPABASE_URL != '' }}"
-          echo "VITE_SUPABASE_ANON_KEY exists: ${{ secrets.VITE_SUPABASE_ANON_KEY != '' }}"
-          echo "GITHUB_TOKEN exists: ${{ secrets.GITHUB_TOKEN != '' }}"
-
-      - name: Check Environment Variables 🧐
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build
         env:
-          TEST_OPENROUTER_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
-          TEST_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          TEST_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-        run: |
-          echo "Checking environment variables..."
-          
-          # Check OpenRouter API Key
-          if [ -z "$TEST_OPENROUTER_KEY" ]; then
-            echo "WARNING: OpenRouter API key is NOT set or is empty!"
-            # Not failing the build since we have a local fallback
-          else
-            echo "OpenRouter API key is set (value is hidden)."
-          fi
-          
-          # Check Supabase URL (required)
-          if [ -z "$TEST_SUPABASE_URL" ]; then
-            echo "ERROR: Supabase URL is NOT set or is empty!"
-            exit 1
-          else
-            echo "Supabase URL is set (value is hidden)."
-          fi
-          
-          # Check Supabase Anon Key (required)
-          if [ -z "$TEST_SUPABASE_ANON_KEY" ]; then
-            echo "ERROR: Supabase Anon Key is NOT set or is empty!"
-            exit 1
-          else
-            echo "Supabase Anon Key is set (value is hidden)."
-          fi
-
-      - name: Build 🏗️
-        env:
-          VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: npm run build
-
-      - name: Prepare for GitHub Pages 📝
-        run: |
-          # Create .nojekyll file (prevents GitHub from ignoring files that begin with an underscore)
-          touch dist/.nojekyll
-          # Copy 404.html if it exists
-          [ -f "public/404.html" ] && cp public/404.html dist/ || echo "404.html not found in public directory"
-          # Copy other necessary files
-          [ -f "public/_redirects" ] && cp public/_redirects dist/ || echo "_redirects not found in public directory"
-          [ -f "public/auth-redirect.html" ] && cp public/auth-redirect.html dist/ || echo "auth-redirect.html not found in public directory"
-          
-          # Add additional logging
-          ls -la dist/
-          echo "Contents of dist directory shown above"
-
-      - name: Deploy 🚀
-        uses: peaceiris/actions-gh-pages@v3
+        
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist # Or your build output directory
-          # Ensure GitHub doesn't process the files with Jekyll
-          disable_nojekyll: false # Keep .nojekyll file 
+          folder: dist # The folder the action should deploy
+          branch: gh-pages # The branch the action should deploy to 

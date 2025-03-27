@@ -9,28 +9,20 @@ export const getApiKey = (): string => {
   // Access the OpenRouter API key using Vite's environment variable pattern
   let apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
   
-  // GitHub Pages workaround - hardcoded key or window object lookup if available
-  // For GitHub Pages deployment which doesn't support server environment variables
-  if (!apiKey || apiKey === 'your-new-openrouter-api-key-here') {
+  // GitHub Pages workaround - check window object lookup if available
+  if (!apiKey) {
     // Try to get from window._env_ if it exists (can be set in index.html)
     if (typeof window !== 'undefined' && window._env_ && window._env_.OPENROUTER_API_KEY) {
       apiKey = window._env_.OPENROUTER_API_KEY;
-    } else {
-      // Fallback to a constant (remove in production or use only for testing)
-      apiKey = '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';
     }
   }
-  
+
   if (!apiKey) {
-    // It's better to show a user-friendly message or disable the feature
-    // instead of throwing an error that might crash the app.
-    // Consider handling this case gracefully in the UI.
-    console.warn('API key not found. Please check your environment variables.');
-    // Return an empty string or handle appropriately elsewhere
-    return ''; 
-    // Or: throw new Error('API key not found. Please check your environment variables.');
+    // Show a user-friendly message
+    console.warn('OpenRouter API key not found. AI analysis features will be limited.');
+    return '';
   }
-  
+
   return apiKey;
 };
 
