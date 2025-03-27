@@ -1,0 +1,28 @@
+name: Debug GitHub Actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Debug Environment
+        run: |
+          echo "GitHub Actions Runner version: $RUNNER_VERSION"
+          echo "GitHub Actions Runner OS: $RUNNER_OS"
+          echo "GitHub Actions Runner Architecture: $RUNNER_ARCH"
+          echo "GitHub Repository: $GITHUB_REPOSITORY"
+          echo "GitHub Workflow: $GITHUB_WORKFLOW"
+          echo "GitHub Job: $GITHUB_JOB"
+          
+      - name: List Available Actions
+        run: |
+          echo "Available GitHub Actions:"
+          echo "actions/checkout: ✓"
+          echo "actions/setup-node: ✓"
+          echo "actions/upload-pages-artifact: ✓"
+          echo "actions/deploy-pages: ✓" 
