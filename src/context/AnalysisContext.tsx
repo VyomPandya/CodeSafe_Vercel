@@ -56,7 +56,7 @@ const initialState: AnalysisState = {
   history: [],
   selectedSeverities: [],
   isDevMode: false,
-  selectedModel: 'mistralai/mistral-7b-instruct-v0.2:free',
+  selectedModel: 'google/gemini-2.5-pro-exp-03-25:free',
   fileInputKey: Date.now(), // Initialize with current timestamp
 };
 

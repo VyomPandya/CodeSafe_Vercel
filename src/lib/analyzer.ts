@@ -23,7 +23,7 @@ if (!OPENROUTER_API_KEY) {
  * @param model The OpenRouter AI model to use for analysis
  * @returns Promise with vulnerability analysis results
  */
-export async function analyzeCode(file: File, model = 'mistralai/mistral-7b-instruct-v0.2:free'): Promise<VulnerabilityResult[]> {
+export async function analyzeCode(file: File, model = 'google/gemini-2.5-pro-exp-03-25:free'): Promise<VulnerabilityResult[]> {
   const content = await file.text();
   const fileExtension = file.name.split('.').pop()?.toLowerCase();
   
