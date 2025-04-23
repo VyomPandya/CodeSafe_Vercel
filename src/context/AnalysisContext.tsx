@@ -56,7 +56,7 @@ const initialState: AnalysisState = {
   history: [],
   selectedSeverities: [],
   isDevMode: false,
-  selectedModel: 'mistralai/mistral-7b-instruct-v0.2:free',
+  selectedModel: 'nvidia/llama-3.1-nemotron-nano-8b-v1:free',
   fileInputKey: Date.now(), // Initialize with current timestamp
 };
 

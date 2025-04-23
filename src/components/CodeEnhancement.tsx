@@ -61,7 +61,7 @@ Do not include any explanations outside the code block, just return the enhanced
           'X-Title': 'Code Vulnerability Analyzer',
         },
         body: JSON.stringify({
-          model: 'mistralai/mistral-7b-instruct-v0.2:free', // Use the free Mistral model
+          model: 'nvidia/llama-3.1-nemotron-nano-8b-v1:free', // Use the free Mistral model
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.1, // Lower temperature for more precise code improvements
           max_tokens: 2048,
