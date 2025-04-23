@@ -18,6 +18,8 @@ if (typeof window !== 'undefined') {
       vite_key: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Available' : 'Not available',
       window_env_url: (typeof window !== 'undefined' && window._env_ && window._env_.SUPABASE_URL) ? 'Available' : 'Not available',
       window_env_key: (typeof window !== 'undefined' && window._env_ && window._env_.SUPABASE_ANON_KEY) ? 'Available' : 'Not available',
+      window_env_vite_url: (typeof window !== 'undefined' && window._env_ && window._env_.VITE_SUPABASE_URL) ? 'Available' : 'Not available',
+      window_env_vite_key: (typeof window !== 'undefined' && window._env_ && window._env_.VITE_SUPABASE_ANON_KEY) ? 'Available' : 'Not available',
     },
     current_url: supabaseUrl ? 'Available' : 'Not available',
     current_key: supabaseAnonKey ? 'Available' : 'Not available',
@@ -32,9 +34,24 @@ if ((!supabaseUrl || !supabaseAnonKey) && typeof window !== 'undefined' && windo
     supabaseUrl = window._env_.SUPABASE_URL;
     console.log('Using Supabase URL from window._env_');
   }
+  // Also check for VITE_ prefixed variables
+  // @ts-ignore
+  else if (window._env_.VITE_SUPABASE_URL) {
+    // @ts-ignore
+    supabaseUrl = window._env_.VITE_SUPABASE_URL;
+    console.log('Using Supabase URL from window._env_.VITE_SUPABASE_URL');
+  }
+  
   if (window._env_.SUPABASE_ANON_KEY) {
     supabaseAnonKey = window._env_.SUPABASE_ANON_KEY;
     console.log('Using Supabase Anon Key from window._env_');
+  }
+  // Also check for VITE_ prefixed variables
+  // @ts-ignore
+  else if (window._env_.VITE_SUPABASE_ANON_KEY) {
+    // @ts-ignore
+    supabaseAnonKey = window._env_.VITE_SUPABASE_ANON_KEY;
+    console.log('Using Supabase Anon Key from window._env_.VITE_SUPABASE_ANON_KEY');
   }
 }
 
@@ -102,6 +119,8 @@ if (typeof window !== 'undefined') {
     // Check if they have values or are just empty objects
     console.log('window._env_ has SUPABASE_URL:', window._env_.SUPABASE_URL ? 'Yes' : 'No');
     console.log('window._env_ has SUPABASE_ANON_KEY:', window._env_.SUPABASE_ANON_KEY ? 'Yes' : 'No');
+    console.log('window._env_ has VITE_SUPABASE_URL:', window._env_.VITE_SUPABASE_URL ? 'Yes' : 'No');
+    console.log('window._env_ has VITE_SUPABASE_ANON_KEY:', window._env_.VITE_SUPABASE_ANON_KEY ? 'Yes' : 'No');
   }
 }
 

@@ -1,19 +1,32 @@
 import { VulnerabilityResult } from '../components/AnalysisResult';
+import { getApiKey } from '../services/aiService';
 
-// API key should be in environment variables
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+// Get the API key using the centralized function
+const getOpenRouterApiKey = () => {
+  return getApiKey();
+};
 
 // Log more detailed API key info in development mode only
 if (import.meta.env.DEV) {
-  if (OPENROUTER_API_KEY) {
-    console.log(`OpenRouter API key found (starts with: ${OPENROUTER_API_KEY.substring(0, 5)}...)`);
+  const apiKey = getOpenRouterApiKey();
+  if (apiKey) {
+    console.log(`OpenRouter API key found (starts with: ${apiKey.substring(0, 5)}...)`);
   } else {
     console.warn('OpenRouter API key not found in environment variables');
+  }
+  
+  // Also check window._env_
+  if (typeof window !== 'undefined' && window._env_) {
+    console.log('Checking window._env_ for OpenRouter API key:');
+    console.log('OPENROUTER_API_KEY exists:', window._env_.OPENROUTER_API_KEY ? 'Yes' : 'No');
+    if (window._env_.OPENROUTER_API_KEY) {
+      console.log(`window._env_.OPENROUTER_API_KEY starts with: ${window._env_.OPENROUTER_API_KEY.substring(0, 5)}...`);
+    }
   }
 }
 
 // Log a warning if API key is missing, but don't treat it as a hard error
-if (!OPENROUTER_API_KEY) {
+if (!getOpenRouterApiKey()) {
   console.warn('OpenRouter API key not found, local analysis will be used as fallback');
 }
 
@@ -28,7 +41,7 @@ export async function analyzeCode(file: File, model = 'mistralai/mistral-7b-inst
   const fileExtension = file.name.split('.').pop()?.toLowerCase();
   
   // Local fallback analysis if OpenRouter API key is not set
-  if (!OPENROUTER_API_KEY) {
+  if (!getOpenRouterApiKey()) {
     console.warn('OpenRouter API key not found, using local analysis');
     return performLocalAnalysis(content, fileExtension || '', file.name);
   }
@@ -86,7 +99,7 @@ IMPORTANT:
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Authorization': `Bearer ${getOpenRouterApiKey()}`,
         'HTTP-Referer': window.location.origin, // Required by OpenRouter
         'X-Title': 'Code Vulnerability Analyzer', // Helpful for tracking in OpenRouter
       },

@@ -10,10 +10,18 @@ export const getApiKey = (): string => {
   let apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
   
   // GitHub Pages workaround - check window object lookup if available
-  if (!apiKey) {
-    // Try to get from window._env_ if it exists (can be set in index.html)
-    if (typeof window !== 'undefined' && window._env_ && window._env_.OPENROUTER_API_KEY) {
+  if (!apiKey && typeof window !== 'undefined' && window._env_) {
+    // Try both versions of the key name for compatibility
+    if (window._env_.OPENROUTER_API_KEY) {
       apiKey = window._env_.OPENROUTER_API_KEY;
+      console.log('Using OpenRouter API key from window._env_.OPENROUTER_API_KEY');
+    } 
+    // TypeScript will show an error here, but this is a fallback for runtime compatibility
+    // @ts-ignore
+    else if (window._env_.VITE_OPENROUTER_API_KEY) {
+      // @ts-ignore
+      apiKey = window._env_.VITE_OPENROUTER_API_KEY;
+      console.log('Using OpenRouter API key from window._env_.VITE_OPENROUTER_API_KEY');
     }
   }
 
@@ -23,6 +31,8 @@ export const getApiKey = (): string => {
     return '';
   }
 
+  // Log the first few characters of the key for debugging
+  console.log(`Using OpenRouter API key (starts with: ${apiKey.substring(0, 5)}...)`);
   return apiKey;
 };
 
