@@ -72,8 +72,8 @@ function ModelSelector({ selectedModel, onChange }: {
         onChange={(e) => onChange(e.target.value)}
         className="block w-full mt-1 px-3 py-2 text-sm border border-indigo-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
       >
-        <option value="google/gemini-2.5-pro-exp-03-25:free">Gemini 2.5 Pro Experimental (Free)</option>
-        <option value="nvidia/llama-3.1-nemotron-ultra-253b-v1:free">NVIDIA Llama 3.1 Nemotron Ultra 253B (Free)</option>
+        <option value="mistralai/mistral-7b-instruct-v0.2:free">Mistral 7B V0.2 (Free)</option>
+        <option value="google/gemini-pro-1.5">Google Gemini Pro 1.5 (Free)</option>
       </select>
     </div>
   );

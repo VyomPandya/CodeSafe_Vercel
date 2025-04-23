@@ -65,7 +65,7 @@ export const enhanceCode = async (code: string, options = {}) => {
         'HTTP-Referer': window.location.origin, // OpenRouter requires this for attribution
       },
       body: JSON.stringify({
-        model: options.model || 'google/gemini-2.5-pro-exp-03-25:free', // Or whichever model you're using
+        model: 'openai/gpt-4', // Or whichever model you're using
         messages: [
           {
             role: 'system',
