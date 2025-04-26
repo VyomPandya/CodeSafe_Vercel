@@ -78,7 +78,7 @@ export function Auth() {
         throw new Error("Authentication service is currently unavailable. Please try again later.");
       }
       
-      const redirectUrl = window.location.origin + (window.location.pathname.includes('/CodeSafe') ? '/CodeSafe/' : '/');
+      const redirectUrl = window.location.origin + '/';
       console.log('Using redirect URL:', redirectUrl);
       
       const { data, error } = await client.auth.signInWithOAuth({

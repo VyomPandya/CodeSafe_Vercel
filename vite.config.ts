@@ -29,7 +29,7 @@ export default defineConfig(({ command, mode }) => {
 
   const config = {
     plugins: [react()],
-    base: command === 'build' ? '/CodeSafe/' : '/', // Use repo name in production
+    base: '/', // Ensure base path is root for Vercel deployment
     
     // Ensure assets are properly handled
     build: {

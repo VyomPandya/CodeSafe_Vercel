@@ -39,5 +39,5 @@
     "typescript-eslint": "^8.3.0",
     "vite": "^5.4.2"
   },
-  "homepage": "https://vyompandya.github.io/CodeSafe"
+  "homepage": "https://code-safe-vercel-ctme.vercel.app"
 }
