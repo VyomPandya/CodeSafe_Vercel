@@ -379,7 +379,8 @@ function AppContent() {
               history={state.history}
               onSelectEntry={(entry) => {
                 dispatch({ type: 'SET_CURRENT_FILE', payload: entry.file_name });
-                dispatch({ type: 'SET_RESULTS', payload: entry.results });
+                const safeResults = Array.isArray(entry.results) ? entry.results : [];
+                dispatch({ type: 'SET_RESULTS', payload: safeResults });
                 dispatch({ type: 'SET_SHOW_HISTORY', payload: false });
               }}
             />

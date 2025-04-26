@@ -16,7 +16,15 @@ interface HistoryViewProps {
 }
 
 export function HistoryView({ history, onSelectEntry }: HistoryViewProps) {
-  const getSeverityCount = (results: VulnerabilityResult[], severity: 'high' | 'medium' | 'low') => {
+  // Ensure history is an array
+  const safeHistory = Array.isArray(history) ? history : [];
+  
+  const getSeverityCount = (results: VulnerabilityResult[] | any, severity: 'high' | 'medium' | 'low') => {
+    // Ensure results is an array before calling filter
+    if (!Array.isArray(results)) {
+      console.error('Results is not an array:', results);
+      return 0;
+    }
     return results.filter(result => result.severity === severity).length;
   };
 
@@ -49,12 +57,12 @@ export function HistoryView({ history, onSelectEntry }: HistoryViewProps) {
         <h3 className="text-lg leading-6 font-medium text-gray-900">Analysis History</h3>
       </div>
       <div className="divide-y divide-gray-200">
-        {history.length === 0 ? (
+        {safeHistory.length === 0 ? (
           <div className="px-4 py-6 text-center text-gray-500">
             No analysis history available
           </div>
         ) : (
-          history.map((entry) => (
+          safeHistory.map((entry) => (
             <button
               key={entry.id}
               onClick={() => onSelectEntry(entry)}
@@ -77,7 +85,7 @@ export function HistoryView({ history, onSelectEntry }: HistoryViewProps) {
                   {getSeverityIcon(getSeverityCount(entry.results, 'high'), 'high')}
                   {getSeverityIcon(getSeverityCount(entry.results, 'medium'), 'medium')}
                   {getSeverityIcon(getSeverityCount(entry.results, 'low'), 'low')}
-                  {entry.results.length === 0 && (
+                  {Array.isArray(entry.results) && entry.results.length === 0 && (
                     <CheckCircle className="h-5 w-5 text-green-500" />
                   )}
                 </div>

@@ -88,7 +88,14 @@ function analysisReducer(state: AnalysisState, action: AnalysisAction): Analysis
       return { ...state, showHistory: action.payload };
     
     case 'SET_HISTORY':
-      return { ...state, history: action.payload };
+      // Ensure that the payload is an array and sanitize each entry to make sure results is also an array
+      const sanitizedHistory = Array.isArray(action.payload) 
+        ? action.payload.map(entry => ({
+            ...entry,
+            results: Array.isArray(entry.results) ? entry.results : []
+          }))
+        : [];
+      return { ...state, history: sanitizedHistory };
     
     case 'TOGGLE_SEVERITY':
       return {
@@ -162,7 +169,28 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      dispatch({ type: 'SET_HISTORY', payload: data || [] });
+      
+      // Add validation and debugging
+      console.log('Raw history data from Supabase:', data);
+      
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        console.error('History data is not an array:', data);
+        dispatch({ type: 'SET_HISTORY', payload: [] });
+        return;
+      }
+      
+      // Check each entry for a valid results property
+      const validatedData = data.map(entry => {
+        // If results is not an array or is missing, set it to an empty array
+        if (!Array.isArray(entry.results)) {
+          console.error(`Results for entry ${entry.id} is not an array:`, entry.results);
+          return { ...entry, results: [] };
+        }
+        return entry;
+      });
+      
+      dispatch({ type: 'SET_HISTORY', payload: validatedData || [] });
     } catch (err) {
       console.error('Error loading history:', err);
       dispatch({ 
