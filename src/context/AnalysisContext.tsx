@@ -170,12 +170,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       
       if (error) throw error;
       
-      // Add validation and debugging
-      console.log('Raw history data from Supabase:', data);
-      
       // Ensure data is an array
       if (!Array.isArray(data)) {
-        console.error('History data is not an array:', data);
         dispatch({ type: 'SET_HISTORY', payload: [] });
         return;
       }
@@ -184,7 +180,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const validatedData = data.map(entry => {
         // If results is not an array or is missing, set it to an empty array
         if (!Array.isArray(entry.results)) {
-          console.error(`Results for entry ${entry.id} is not an array:`, entry.results);
           return { ...entry, results: [] };
         }
         return entry;

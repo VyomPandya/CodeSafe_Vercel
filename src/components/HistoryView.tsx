@@ -22,7 +22,6 @@ export function HistoryView({ history, onSelectEntry }: HistoryViewProps) {
   const getSeverityCount = (results: VulnerabilityResult[] | any, severity: 'high' | 'medium' | 'low') => {
     // Ensure results is an array before calling filter
     if (!Array.isArray(results)) {
-      console.error('Results is not an array:', results);
       return 0;
     }
     return results.filter(result => result.severity === severity).length;
