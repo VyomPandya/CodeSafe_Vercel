@@ -7,7 +7,7 @@ A modern web application for analyzing code vulnerabilities in JavaScript, TypeS
 - **User Authentication**: Secure login and registration using email/password or GitHub OAuth via Supabase
 - **Code File Upload**: Upload JavaScript, TypeScript, Python, or Java files for analysis
 - **AI-Powered Analysis**: Uses OpenRouter API to analyze code for vulnerabilities
-- **Multiple AI Models**: Choose between different free AI models (DeepSeek, Mistral, Gemini)
+- **Multiple AI Models**: Choose between different free AI models (NVIDIA Llama, Qwen Code)
 - **Vulnerability Detection**: Automatically identifies common security issues and bad practices
 - **Severity Classification**: Issues are categorized as low, medium, or high severity
 - **AI-Based Suggestions**: Receives specific, actionable suggestions for improving code security
@@ -18,7 +18,7 @@ A modern web application for analyzing code vulnerabilities in JavaScript, TypeS
 
 - **Frontend**: React, TypeScript, TailwindCSS
 - **Backend**: Supabase (Authentication, Database, Serverless Functions)
-- **AI/ML**: OpenRouter API for code analysis with models like DeepSeek, Mistral, and Gemini
+- **AI/ML**: OpenRouter API for code analysis with models like NVIDIA Llama and Qwen Code
 - **Deployment**: Vite for frontend building and optimization
 
 ## Getting Started
@@ -42,38 +42,43 @@ VITE_OPENROUTER_API_KEY=your_openrouter_api_key
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/code-vulnerability-analyzer.git
-   cd code-vulnerability-analyzer
-   ```
+Clone the repository:
 
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+```bash
+git clone https://github.com/yourusername/code-vulnerability-analyzer.git
+cd code-vulnerability-analyzer
+```
 
-3. Set up the database with the provided Supabase migration:
-   ```
-   npx supabase db push
-   ```
+Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+```
+
+Set up the database with the provided Supabase migration:
+
+```bash
+npx supabase db push
+```
 
 ### Running the Application
 
 To start the development server:
+
 ```bash
 npm run dev
 # or
 yarn dev
 ```
 
-Visit `http://localhost:5173` to view the application.
+Visit http://localhost:5173 to view the application.
 
 ### Building for Production
 
 To create a production build:
+
 ```bash
 npm run build
 # or
@@ -86,9 +91,8 @@ The build files will be generated in the `dist` directory, ready for deployment.
 
 1. **Sign Up/Login**: Create an account using email/password or GitHub OAuth
 2. **Select AI Model**: Choose which AI model to use for code analysis
-   - DeepSeek Coder (recommended for code analysis)
-   - Mistral 7B
-   - Google Gemini
+   - NVIDIA Llama (recommended for code analysis)
+   - Qwen Code (versatile and language-aware)
 3. **Upload Code**: Click on the upload area to select a JavaScript, TypeScript, Python, or Java file
 4. **View Analysis**: See detected vulnerabilities categorized by severity
 5. **Review Suggestions**: Click on each issue to view AI-suggested improvements
@@ -97,12 +101,10 @@ The build files will be generated in the `dist` directory, ready for deployment.
 
 ## AI Models
 
-The application supports several free AI models through OpenRouter:
+The application supports AI models through OpenRouter:
 
-- **DeepSeek R1 Distill Llama 8B** (Default): Specialized for code analysis with excellent performance on detecting vulnerabilities
-- **Mistral 7B** (Free): General-purpose model with good code understanding
-- **Google Gemini** (Free): Google's model that performs well on code analysis tasks
-- **Claude 3 Opus** (Paid): Premium model for highest quality analysis
+- **NVIDIA Llama**: Specialized for code analysis with high performance on vulnerability detection
+- **Qwen Code**: Trained for code understanding and secure coding recommendations
 
 ## API Integrations
 
@@ -110,7 +112,7 @@ The application supports several free AI models through OpenRouter:
 
 This application uses OpenRouter to analyze code with state-of-the-art AI models. To enable this feature:
 
-1. Create an account at [OpenRouter](https://openrouter.ai/)
+1. Create an account at OpenRouter
 2. Generate an API key
 3. Add the API key to your `.env` file as `VITE_OPENROUTER_API_KEY`
 
@@ -119,6 +121,7 @@ If no OpenRouter API key is provided, the application will fall back to a local,
 ## Development Mode
 
 For development and testing purposes:
+
 - Press `Ctrl+Alt+D` to enter development mode, which bypasses authentication
 - Use the test buttons to quickly analyze sample vulnerable code
 
@@ -128,4 +131,4 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. 
+Contributions are welcome! Please feel free to submit a Pull Request.
