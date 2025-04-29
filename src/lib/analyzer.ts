@@ -36,7 +36,7 @@ if (!getOpenRouterApiKey()) {
  * @param model The OpenRouter AI model to use for analysis
  * @returns Promise with vulnerability analysis results
  */
-export async function analyzeCode(file: File, model = 'nvidia/llama-3.1-nemotron-nano-8b-v1:free'): Promise<VulnerabilityResult[]> {
+export async function analyzeCode(file: File, model = 'nvidia/llama-3.1-nemotron-ultra-253b-v1:free'): Promise<VulnerabilityResult[]> {
   const content = await file.text();
   const fileExtension = file.name.split('.').pop()?.toLowerCase();
   

@@ -72,8 +72,8 @@ function ModelSelector({ selectedModel, onChange }: {
         onChange={(e) => onChange(e.target.value)}
         className="block w-full mt-1 px-3 py-2 text-sm border border-indigo-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
       >
-        <option value="nvidia/llama-3.1-nemotron-nano-8b-v1:free">Llama-3.1-nemotron-nano-8b</option>
-        <option value="qwen/qwen-2.5-coder-32b-instruct:free">Qwen-2.5-coder-32b-instruct</option>
+        <option value="nvidia/llama-3.1-nemotron-ultra-253b-v1:free">Llama-3.1-nemotron-nano-8b</option>
+        <option value="qwen/qwen3-30b-a3b:free">Qwen-2.5-coder-32b-instruct</option>
       </select>
     </div>
   );
