@@ -73,7 +73,7 @@ npm run dev
 yarn dev
 ```
 
-Visit http://localhost:5173 to view the application.
+Visit http://localhost:5173](https://code-safe-vercel-ctme.vercel.app/ to view the application.
 
 ### Building for Production
 
